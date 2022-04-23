@@ -1,0 +1,345 @@
+---
+title: "project5_v1.2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This is a project on hypothesis testing and testing differences. I will be explaining the terms in the first part and then proceed to perform calculations in R. In the second part I will be using t-test and z-test where n<30 and n>30 respectively, and use the p-value to test whether the null hypothesis should be rejected.
+
+In the final task I will perform a correlation analysis on a dataset, create a regression model using the data, then create a scatter plot of the data with the regression line.
+
+#########################################################################################################
+
+## Part 1
+
+<b>Hypothesis testing</b>
+
+The significance levels for any particular data shows you how likely an identified pattern or correlation between data sets is to be attributable to chance. Thus there is an inherent chance of rejecting a null hypothesis that is actually true due to inherent error For example, one might decide to find out the correlation between ball striking technique and possibility of a goal and establishes a null hypothesis:
+Ho = There is no correlation between ball striking technique and goal scoring
+H1= There is a correlation between ball striking technique and goal scoring 
+Assuming the sample size is less than 30 and a t-score is employed, at a significance level of 0.05, there is a 5% chance of concluding that there is a correlation between ball striking technique and goal scoring when there is actually no correlation.
+
+
+<b>Testing differences</b>
+
+Testing differences between two sample sizes is important in establishing whether the two samples are from the same population since they will then have the same mean and standard deviation. For example, when testing difference between two mean values and the result yields a p-value of less than 0.05 and even a negative value, then the two samples are statistically different and no correlation exists. For instance, this can be used in comparing the effect of vitamin uptake in 30 year olds where the control group is deprived of the vitamin uptake to see the statistical difference between the two groups with regards to immune boost.
+
+#########################################################################################################
+
+```{r message=FALSE, warning=FALSE}
+# LOAD PACKAGES
+library(pacman)
+
+pacman::p_load(pacman, dplyr, GGally, ggplot2, ggthemes, 
+               ggvis, httr, lubridate, plotly, rio, rmarkdown, shiny, 
+               stringr, tidyr) 
+
+library(datasets)  # Load/unload base packages manually
+library(distributions3)
+library(ggpmisc)
+library(rmarkdown)
+
+```
+
+#########################################################################################################
+
+
+# Part 2: Task 1
+# Perform a Z-test
+
+Null Hypothesis: µ = 16.4<br>
+Alternative Hypothesis: µ != 16.4<br>
+Population : n=3000, µ=16.4, σ=1.35<br>
+Sample(n=65) mean = 17<br>
+Confidence level = 99%<br>
+Significance level(α) = 0.01<br>
+
+
+We assume the null hypothesis is true unless we have sufficient evidence to prove otherwise
+
+ Z-test :<br>
+ xbar - µ<br>
+ ----------<br>
+   σ / √n 
+
+```{r}
+# Z-test
+zstat <- (17 - 16.4) / (1.35 / sqrt(65))
+print(zstat)
+
+# Critical Value(CV)
+# I would use a CV on both sides of the curve since the alternative hypothesis is not equal.
+#Find Z critical value
+cv = qnorm(p=.01/2, lower.tail=FALSE)
+print(cv)
+
+# Compare z-test(zstat) to cv
+# zstat = 3.583, cv = +/-2.576
+zstat>cv
+
+# Reject null hypothesis since zstat is greater than cv(2.576)
+
+# Test using p value
+# Calculate p value
+pstat = 2 * pnorm(-abs(zstat))
+
+# Compare pvalue(pstat) to α(0.01)
+pstat<0.01
+
+## Reject null hypothesis since pstat is less than Significance level(α)
+
+# A p-value less than 0.01 is statistically significant. 
+# It indicates strong evidence against the null hypothesis, 
+# as there is less than a 1% probability the null is correct (and the results are random).
+```
+
+
+#########################################################################################################
+
+# Part 2: Task 2
+# Perform a t-test
+
+Null Hypothesis: µ = 16.40943<br>
+Alternative Hypothesis: µ != 16.40943<br>
+
+Population : n=, µ=16.40943, σ=0.7432<br>
+Sample(n=25) xbar = 16.02584<br>
+Confidence level = 99%<br>
+Significance level(α) = 0.01<br>
+
+
+We assume the null hypothesis is true unless we have sufficient evidence to prove otherwise
+Use a CV on both sides of the curve since the alternative hypothesis is: not equal.
+
+t-test :<br>
+xbar - µ<br>
+-----------<br>
+ σ / √n 
+
+```{r}
+# t-test
+tstat <- (16.02584 - 16.40943) / (0.7432 / sqrt(25))
+print(tstat)
+
+# Critical Value(CV)
+# I would use a CV on both sides of the curve since the alternative hypothesis is not equal.
+# Find t critical value
+cv = qnorm(p=.01/2, lower.tail=FALSE)
+print(cv)
+
+# Compare t-test(tstat) to cv
+# tstat = -2.581, cv = +/-2.576
+tstat<(-1*cv)
+
+## Reject null hypothesis since tstat is less than cv(-2.576)
+
+### Test using p value
+# Calculate p value
+pstat = 2 * pnorm(-abs(tstat))
+
+# Compare pvalue(pstat) to α(0.01)
+pstat<0.01
+
+## Reject null hypothesis since pstat is less than Significance level(α)
+
+# A p-value less than 0.01 is statistically significant. 
+# It indicates strong evidence against the null hypothesis, 
+# as there is less than a 1% probability the null is correct (and the results are random).
+```
+
+
+
+#######################################################################################################
+
+# Part 2: Task 3
+# Compare two means using z test
+
+ Null Hypothesis: μ1 = μ2<br>
+ Alternative Hypothesis: μ1 != μ2
+
+ Z :<br>
+ xbar1-xbar2-δ0<br>
+ ---------------------<br>
+ √((σ1^2/n1)+(σ2^2/n2))
+
+```{r}
+# Assign variables
+# Significance level(α) = 0.05
+xbar_1 <- 271
+xbar_2 <- 281
+delta <- 0
+sigma_sq_1 <- 64635
+sigma_sq_2 <- 26575
+n_1 <- 264
+n_2 <- 264
+
+# calculate the z-statistic
+z_stat <- (xbar_1 - xbar_2 - delta) / 
+  sqrt(sigma_sq_1 / n_1 + sigma_sq_2 / n_2)
+
+# Compare critical value
+# z_stat = -0.538, cv = +/-1.96
+cv = qnorm(p=.05/2, lower.tail=FALSE)
+z_stat<(-1*cv)
+
+## Do not reject null hypothesis since zstat is greater than cv(-1.96)
+
+# Calculating p-values
+# P(|Z|≥|−0.376|)=P(Z≥0.376)+P(Z≤−0.376)
+#                =1−P(Z≤0.376)+P(Z≤−0.376)
+#                =1−Φ(0.376)+Φ(0.376)
+
+Z = Normal(0, 1)  # make a standard normal r.v.
+pstat = 1 - cdf(Z, abs(z_stat)) + cdf(Z, -abs(z_stat))
+
+# Compare pvalue(pstat) to α(0.05)
+pstat<0.05
+
+## Do not reject null hypothesis since pstat is greater than Significance level(α)
+
+# A p-value higher than 0.05 (> 0.05) is not statistically significant . 
+# It indicates strong evidence for the null hypothesis, 
+# as there is more than a 95% probability the null is correct (and the results are not random).
+```
+
+
+########################################################################################################
+
+# Part 2: Task 4
+# Compare two independent means using t test
+
+ Null Hypothesis: μ1 = μ2<br>
+ Alternative Hypothesis: μ1 != μ2<br>
+ Variances are assumed to be unequal<br>
+
+```{r}
+# Data
+sample_4a <- c(1.75, 1.18, 1.19, 1.52, 2.73, 1.91, 2.87, 1.39, 1.85, 1.65, 2.92, 
+            2.40, 1.38, 2.86, 2.56, 2.85, 2.66, 2.43, 2.70, 2.27, 2.99, 2.47, 
+            1.90, 1.49, 1.10, 2.15, 2.51, 2.66)
+sample_4b <- c(2.68, 2.16, 2.50, 2.18, 2.30, 3.00, 2.28, 2.00, 2.19, 2.11, 2.17, 
+            2.57, 2.98, 2.01, 2.35, 2.23, 2.54, 2.85, 2.04, 2.23, 2.87, 2.46, 
+            2.73, 2.43, 2.06, 2.46, 2.84, 2.32)
+n <- 28
+df <- n-1 # Degrees of freedom
+
+# Mean
+mean_4a <- mean(sample_4a)
+mean_4b <- mean(sample_4b)
+
+# Standard Deviation
+std_4a <- sd(sample_4a)
+std_4b <- sd(sample_4b)
+
+# t-test
+t.test(sample_4a, sample_4b,
+       alternative = "two.sided",
+       mu = 0,
+       paired = F,
+       var.equal = F,
+       conf.level = 0.99)
+# tstat=-1.9909, pvalue=0.05343
+
+# Find critical value
+cv = qnorm(p=.01/2, lower.tail=FALSE)
+
+# Compare t-test(tstat) to cv(+/-2.576)
+tstat <- -1.9909
+tstat<(-1*cv)
+
+## Do not reject null hypothesis since tstat is greater than cv(-2.576)
+
+# Compare pvalue(pstat) to α(0.01)
+pstat <- 0.05343
+pstat<0.01
+
+## Do not reject null hypothesis since pstat is greater than Significance level(α)
+
+# A p-value higher than 0.01 (> 0.01) is not statistically significant . 
+# It indicates strong evidence for the null hypothesis, 
+# as there is more than a 99% probability the null is correct (and the results are not random).
+```
+
+
+########################################################################################################
+
+# Part 2: Task 5
+# Correlation and regression analysis
+
+```{r include=FALSE}
+?faithful
+data("faithful")
+head(faithful, 6)
+plot(faithful, main="Faithful - Waiting vs Eruptions")
+```
+
+ Faithful is a dataset with two attributes i.e. the waiting time between 
+ eruptions and the length of the eruptions, containing 272 observations
+ for the Old Faithful geyser in Yellowstone National Park, Wyoming, USA.
+
+```{r}
+## Coefficient of correlation
+# Load attributes
+length <- faithful$eruptions
+waiting <- faithful$waiting
+
+cor(length, waiting)
+
+# cor = 0.9008112
+
+# Coefficient of correlation is the measure of how well two variables are 
+# related. i.e. the corresponding change to variable B due to varable A
+
+
+## Coefficient of determination
+eruption.lm <- lm(eruptions ~ waiting, data=faithful)
+summary(eruption.lm)$r.squared
+
+# cor.det = 0.8114608
+
+# Coefficient of determination is a measure that explains how well change
+# in variable A can be explained by the change in variable B.
+
+
+## Object to obtain the linear regression model 
+# y = b0 + b1x
+coeffs <- coefficients(eruption.lm)
+coeffs
+duration <- coeffs[1] + coeffs[2]*waiting
+my.formula <- y ~ x
+
+# Scatter plot
+gp <- ggplot(faithful, aes(length, waiting)) +
+             geom_point(shape=2) + # Present data points as triangles
+             stat_smooth(method = lm, size=1.5, color='red') 
+             # Increase thickness of the regression line and change color
+
+gp + ggtitle("Faithful - Waiting vs Eruptions") + # Add title, and x and y labels
+  xlab("Waiting time(mins)") + ylab("Eruption duration(mins)") +
+  
+  # Write the formula for the regression line inside the plot
+  stat_poly_eq(formula = my.formula, 
+               aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
+               parse = TRUE)
+
+## Intercept and slope
+coeffs
+
+# The value of the y-intercept (33.5) indicates the average eruption duration
+# for a volcano with no waiting.
+# The value of the slope (10.7) indicates that for each minute waiting, 
+# the eruption duration increases, on average, by 10.7 points.
+
+## Direction and strength of the regression line 
+
+# The correlation value being positive indicates a positive relationship between 
+# the waiting time between eruptions and the length of the eruptions. And the 
+# value being so close to 1 indicates a strong relationship between them i.e.
+# a +1 change in length corresponds to a +0.9008112 change in waiting.
+```
+
